@@ -1,0 +1,47 @@
+name: Paper Daily
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 23 * * *"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  paper-daily:
+    runs-on: ubuntu-latest
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CUSTOM_FEED_BEARER_TOKEN: ${{ secrets.CUSTOM_FEED_BEARER_TOKEN }}
+      RESEARCH_INTERESTS_ISSUE_TITLE: Research Interests
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Run paper collector
+        shell: bash
+        run: |
+          if [ -f scripts/paper_daily.py ]; then
+            python scripts/paper_daily.py
+          elif [ -f paper_daily.py ]; then
+            python paper_daily.py
+          else
+            python -m paper_daily
+          fi
